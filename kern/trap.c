@@ -101,7 +101,7 @@ SETGATE(idt[T_FPERR], 0, GD_KT, t_fperr, 0);
 SETGATE(idt[T_ALIGN], 0, GD_KT, t_align, 0);
 SETGATE(idt[T_MCHK], 0, GD_KT, t_mchk, 0);
 SETGATE(idt[T_SIMDERR], 0, GD_KT, t_simderr, 0);
-
+SETGATE(idt[T_SYSCALL], 0, GD_KT, t_syscall, 3);
 
 	// Per-CPU setup 
 	trap_init_percpu();
@@ -185,6 +185,22 @@ trap_dispatch(struct Trapframe *tf)
         page_fault_handler(tf);
         return;
         }
+        else if(tf->tf_trapno == T_BRKPT){
+        monitor(tf);
+        return;
+        }
+      
+        if (tf->tf_trapno == T_SYSCALL)
+        {
+        if((tf->tf_regs.reg_eax = syscall (tf->tf_regs.reg_eax, tf->tf_regs.reg_edx,
+                          tf->tf_regs.reg_ecx, tf->tf_regs.reg_ebx,
+                          tf->tf_regs.reg_edi, tf->tf_regs.reg_esi)) < 0)
+ 
+        panic ("Invalid system call!");
+ 
+        return;
+ 
+        } 
 	// Unexpected trap: The user process or the kernel has a bug.
 	print_trapframe(tf);
 	if (tf->tf_cs == GD_KT)
@@ -245,9 +261,11 @@ page_fault_handler(struct Trapframe *tf)
 	// Handle kernel-mode page faults.
 
 	// LAB 3: Your code here.
-
+       // if((tf->tf_cs == GD_KD) | (tf->tf_cs == GD_KT))
+       // panic("Page fault in kernel mode");
 	// We've already handled kernel-mode exceptions, so if we get here,
 	// the page fault happened in user mode.
+        
 
 	// Destroy the environment that caused the fault.
 	cprintf("[%08x] user fault va %08x ip %08x\n",
