@@ -272,7 +272,13 @@ mem_init_mp(void)
 	//     Permissions: kernel RW, user NONE
 	//
 	// LAB 4: Your code here:
-
+        uint32_t cpuno; 
+        for(cpuno = 0; cpuno <= NCPU; cpuno++)
+        {
+        uintptr_t  kstacktop_i = (uintptr_t) KSTACKTOP - cpuno *(KSTKSIZE + KSTKGAP);
+        
+        boot_map_region(kern_pgdir, kstacktop_i-KSTKSIZE, KSTKSIZE, PADDR(percpu_kstacks[cpuno]), PTE_W | PTE_P); 
+        }
 }
 
 // --------------------------------------------------------------
@@ -315,11 +321,12 @@ page_init(void)
         // The number of pages occupied in the extended memory area
         uint32_t kern_pages = ((uint32_t)boot_alloc(0) - KERNBASE)/PGSIZE;
         cprintf ("kern_pages = %u\n", kern_pages);
+        
         for (i = 0; i < npages; i++) 
         {
         pages[i].pp_link = NULL;
-
-          if (i==0)
+        
+          if (i==0 || i==MPENTRY_PADDR/PGSIZE)
          {
           pages[i].pp_ref = 1;
          }
@@ -620,7 +627,14 @@ mmio_map_region(physaddr_t pa, size_t size)
 	// Hint: The staff solution uses boot_map_region.
 	//
 	// Your code here:
-	panic("mmio_map_region not implemented");
+        size=ROUNDUP((size_t)size,PGSIZE);
+        
+        if(base+size>MMIOLIM)
+        panic("mmio_map_region: not enough memory"); 
+        boot_map_region(kern_pgdir, base, size, pa, PTE_W | PTE_PCD | PTE_PWT | PTE_P);
+        base +=size;
+
+        return (void *)(base - size);
 }
 
 static uintptr_t user_mem_check_addr;
@@ -647,7 +661,6 @@ int
 user_mem_check(struct Env *env, const void *va, size_t len, int perm)
 {
 	// LAB 3: Your code here.
-        // LAB 3: Your code here.
         uintptr_t lower = (uintptr_t )ROUNDDOWN ((uint32_t)va, PGSIZE);
         uintptr_t upper = (uintptr_t) va + len;
 
