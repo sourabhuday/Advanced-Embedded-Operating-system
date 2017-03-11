@@ -275,7 +275,7 @@ mem_init_mp(void)
         uint32_t cpuno; 
         for(cpuno = 0; cpuno <= NCPU; cpuno++)
         {
-        uintptr_t  kstacktop_i = (uintptr_t) KSTACKTOP - cpuno *(KSTKSIZE + KSTKGAP);
+        uintptr_t  kstacktop_i = (uintptr_t) (KSTACKTOP - cpuno *(KSTKSIZE + KSTKGAP));
         
         boot_map_region(kern_pgdir, kstacktop_i-KSTKSIZE, KSTKSIZE, PADDR(percpu_kstacks[cpuno]), PTE_W | PTE_P); 
         }
@@ -627,7 +627,7 @@ mmio_map_region(physaddr_t pa, size_t size)
 	// Hint: The staff solution uses boot_map_region.
 	//
 	// Your code here:
-        size=ROUNDUP((size_t)size,PGSIZE);
+        size=(size_t)ROUNDUP(size,PGSIZE);
         
         if(base+size>MMIOLIM)
         panic("mmio_map_region: not enough memory"); 
