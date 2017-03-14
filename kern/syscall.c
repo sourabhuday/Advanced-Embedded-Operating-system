@@ -180,6 +180,7 @@ sys_page_alloc(envid_t envid, void *va, int perm)
         struct PageInfo * pgalloc = page_alloc(ALLOC_ZERO);
         if(!pgalloc)
         return -E_NO_MEM;
+        pgalloc->pp_ref++;
  
         if((uint32_t)va>=UTOP || ((uint32_t)va % PGSIZE))
         return -E_INVAL;
