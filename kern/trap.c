@@ -49,9 +49,27 @@ void t_mchk();
 void t_simderr();
 void t_syscall();
 
+void irq0();
+void irq1();
+void irq2();
+void irq3();
+void irq4();
+void irq5();
+void irq6();
+void irq7();
+void irq8();
+void irq9();
+void irq10();
+void irq11();
+void irq12();
+void irq13();
+void irq14();
+void irq15();
+
+
 static const char *trapname(int trapno)
 {
-	static const char * const excnames[] = {
+static const char * const excnames[] = {
 		"Divide error",
 		"Debug",
 		"Non-Maskable Interrupt",
@@ -109,6 +127,24 @@ SETGATE(idt[T_ALIGN], 0, GD_KT, t_align, 0);
 SETGATE(idt[T_MCHK], 0, GD_KT, t_mchk, 0);
 SETGATE(idt[T_SIMDERR], 0, GD_KT, t_simderr, 0);
 SETGATE(idt[T_SYSCALL], 0, GD_KT, t_syscall, 3);
+
+SETGATE(idt[32], 0, GD_KT, irq0, 0);
+SETGATE(idt[33], 0, GD_KT, irq1, 0);
+SETGATE(idt[34], 0, GD_KT, irq2, 0);
+SETGATE(idt[35], 0, GD_KT, irq3, 0);
+SETGATE(idt[36], 0, GD_KT, irq4, 0);
+SETGATE(idt[37], 0, GD_KT, irq5, 0);
+SETGATE(idt[38], 0, GD_KT, irq6, 0);
+SETGATE(idt[39], 0, GD_KT, irq7, 0);
+SETGATE(idt[40], 0, GD_KT, irq8, 0);
+SETGATE(idt[41], 0, GD_KT, irq9, 0);
+SETGATE(idt[42], 0, GD_KT, irq10, 0);
+SETGATE(idt[43], 0, GD_KT, irq11, 0);
+SETGATE(idt[44], 0, GD_KT, irq12, 0);
+SETGATE(idt[45], 0, GD_KT, irq13, 0);
+SETGATE(idt[46], 0, GD_KT, irq14, 0);
+SETGATE(idt[47], 0, GD_KT, irq15, 0);
+
 
 	// Per-CPU setup 
 	trap_init_percpu();
@@ -223,6 +259,12 @@ trap_dispatch(struct Trapframe *tf)
 	// Handle clock interrupts. Don't forget to acknowledge the
 	// interrupt using lapic_eoi() before calling the scheduler!
 	// LAB 4: Your code here.
+        if (tf->tf_trapno == IRQ_OFFSET + IRQ_TIMER)
+        {
+        lapic_eoi();
+        sched_yield();
+        return;
+        }
 
         
         if(tf->tf_trapno == T_PGFLT){
@@ -374,29 +416,18 @@ page_fault_handler(struct Trapframe *tf)
          print_trapframe(tf);
          env_destroy(curenv);
         }
-        // Determine the top of the exception stack
         uint32_t xstack_top;
         if (tf->tf_esp < USTACKTOP) 
         {
-        // Switching from user stack to user exception stack
         xstack_top = UXSTACKTOP - sizeof(struct UTrapframe);
         } 
         else 
         {
-        // Recursive fault, we're already in the exception stack running the
-        // handler code.
-        // Note the -4 at the end, that's for the empty word separating the
-        // two exception trapframes.
         xstack_top = tf->tf_esp - sizeof(struct UTrapframe) - 4;
         }
   
-        // Make sure we can write to the top of our exception stack. This implicitly
-        // checks two conditions:
-        // 1) if the user process mapped a page from UXSTACKTOP to UXSTACKTOP - PGSIZE
-        // 2) if we've ran over the exception stack, beyond UXSTACKTOP - PGSIZE
         user_mem_assert(curenv, (void *) xstack_top, 1, PTE_W | PTE_U);
      
-        // Write the UTrapframe to the exception stack
         struct UTrapframe *u_tf = (struct UTrapframe *) xstack_top;
         u_tf->utf_fault_va = fault_va;
         u_tf->utf_err = tf->tf_err;
@@ -405,8 +436,6 @@ page_fault_handler(struct Trapframe *tf)
         u_tf->utf_eflags = tf->tf_eflags;
         u_tf->utf_esp = tf->tf_esp; 
  
-        // Now adjust the trap frame so that the user process returns to executing
-        // in the exception stack and runs code from the handler.
         tf->tf_esp = (uintptr_t) xstack_top;
         tf->tf_eip = (uintptr_t) curenv->env_pgfault_upcall;
         env_run(curenv);        
