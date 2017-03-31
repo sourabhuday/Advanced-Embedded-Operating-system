@@ -50,26 +50,41 @@ i386_init(void)
 
 	// Acquire the big kernel lock before waking up APs
 	// Your code here:
-
+        lock_kernel();
 	// Starting non-boot CPUs
 	boot_aps();
 
 	// Start fs.
-	ENV_CREATE(fs_fs, ENV_TYPE_FS);
+	//ENV_CREATE(fs_fs, ENV_TYPE_FS);
 
 #if defined(TEST)
 	// Don't touch -- used by grading script!
 	ENV_CREATE(TEST, ENV_TYPE_USER);
 #else
 	// Touch all you want.
-	ENV_CREATE(user_icode, ENV_TYPE_USER);
+	
+        ENV_CREATE(user_icode, ENV_TYPE_USER);
+	
+        //ENV_CREATE(user_primes, ENV_TYPE_USER);
+	//ENV_CREATE(user_yield, ENV_TYPE_USER);
+	//ENV_CREATE(user_yield, ENV_TYPE_USER);
+	//ENV_CREATE(user_yield, ENV_TYPE_USER);
+	//ENV_CREATE(user_yield, ENV_TYPE_USER);
+	//ENV_CREATE(user_yield, ENV_TYPE_USER);
+        //ENV_CREATE(user_dumbfork, ENV_TYPE_USER);
+        ENV_CREATE(user_faultdie, ENV_TYPE_USER);
+        //ENV_CREATE(user_faultalloc, ENV_TYPE_USER);
+        //ENV_CREATE(user_faultdie, ENV_TYPE_USER);
+        //ENV_CREATE(user_dumbfork, ENV_TYPE_USER);
+
+
 #endif // TEST*
 
 	// Should not be necessary - drains keyboard because interrupt has given up.
 	kbd_intr();
 
 	// Schedule and run the first user environment!
-	sched_yield();
+        sched_yield();
 }
 
 // While boot_aps is booting a given CPU, it communicates the per-core
@@ -122,9 +137,10 @@ mp_main(void)
 	// only one CPU can enter the scheduler at a time!
 	//
 	// Your code here:
-
+        lock_kernel();
+        sched_yield();
 	// Remove this after you finish Exercise 4
-	for (;;);
+	//for (;;);
 }
 
 /*
