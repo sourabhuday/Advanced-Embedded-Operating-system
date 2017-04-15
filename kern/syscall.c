@@ -207,7 +207,7 @@ sys_page_alloc(envid_t envid, void *va, int perm)
         struct PageInfo * pgalloc = page_alloc(ALLOC_ZERO);
         if(!pgalloc)
         return -E_NO_MEM;
-        pgalloc->pp_ref++;
+        //pgalloc->pp_ref++;
  
         if((uint32_t)va>=UTOP || ((uint32_t)va % PGSIZE))
         return -E_INVAL;
@@ -264,10 +264,14 @@ sys_page_map(envid_t srcenvid, void *srcva,
        if(((uint32_t)srcva>=UTOP || ((uint32_t)srcva % PGSIZE)) || ((uint32_t)dstva>=UTOP ||((uint32_t)dstva % PGSIZE)))
        return -E_INVAL;
        
-       struct PageInfo *page = page_lookup(src->env_pgdir, srcva, 0);
+       pte_t *pte_store; 
+       struct PageInfo *page = page_lookup(src->env_pgdir, srcva, &pte_store);
        if (!page)
        return -E_INVAL;
-        
+
+       if (((perm & (PTE_P | PTE_U)) != (PTE_P | PTE_U)) || (perm & ~(PTE_SYSCALL)) || ((perm & PTE_W) & (*pte_store)) != (perm & PTE_W))
+       return -E_INVAL;  
+      
        if (page_insert(dst->env_pgdir, page, dstva, perm) < 0)
        return -E_NO_MEM;
        return 0;
