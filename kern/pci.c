@@ -31,7 +31,7 @@ struct pci_driver pci_attach_class[] = {
 // pci_attach_vendor matches the vendor ID and device ID of a PCI device. key1
 // and key2 should be the vendor ID and device ID respectively
 struct pci_driver pci_attach_vendor[] = {
-        {0x8086, 0x100e, (void *)&pci_func_enable},
+        {0x8086, 0x100e, (void *)&attach_fn},
 	{ 0, 0, 0 },
 };
 
@@ -96,6 +96,7 @@ pci_attach(struct pci_func *f)
 		pci_attach_match(PCI_VENDOR(f->dev_id),
 				 PCI_PRODUCT(f->dev_id),
 				 &pci_attach_vendor[0], f);
+        return 0;
 }
 
 static const char *pci_class[] =
