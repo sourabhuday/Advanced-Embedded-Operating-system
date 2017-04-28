@@ -17,8 +17,8 @@ assert(mmio_e1000[E1000_STATUS]==0x80080783);
 
 e1000_init();
 
-char arr[10]="Test";
-e1000_transmit(arr,4);
+//char arr[10]="Test";
+//e1000_transmit(arr,4);
 return 0;
 }
 

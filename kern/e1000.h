@@ -11,7 +11,7 @@ volatile uint32_t *mmio_e1000;
 //struct e1000_tx_desc txdesc_array[TXDESC_MAXSIZE] __attribute__ ((aligned(16)));
 
 int attach_fn(struct pci_func *pcif);
-
+int e1000_transmit(void *pkt, uint32_t length);
 
 #define E1000_STATUS   0x00008/4  /* Device Status - RO */
 #define E1000_TDBAL    0x03800/4  /* TX Descriptor Base Address Low - RW */

@@ -122,3 +122,9 @@ sys_time_msec(void)
 {
 	return (unsigned int) syscall(SYS_time_msec, 0, 0, 0, 0, 0, 0);
 }
+
+int 
+sys_e1000_transmit(void *pkt_addr, size_t length)
+{
+      return(int32_t)syscall(SYS_e1000_transmit,0, (uint32_t)pkt_addr, (uint32_t)length, 0, 0, 0);
+}
