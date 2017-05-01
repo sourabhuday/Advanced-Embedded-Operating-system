@@ -61,6 +61,9 @@ int	sys_ipc_try_send(envid_t to_env, uint32_t value, void *pg, int perm);
 int	sys_ipc_recv(void *rcv_pg);
 unsigned int sys_time_msec(void);
 int sys_e1000_transmit(void *pkt_addr, size_t length);
+int sys_e1000_recv(void *data_addr);
+void sys_net_get_mac(uint8_t* mac_address);
+
 
 // This must be inlined.  Exercise for reader: why?
 static inline envid_t __attribute__((always_inline))

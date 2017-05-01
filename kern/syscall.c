@@ -434,6 +434,19 @@ int32_t sys_e1000_transmit(void *pkt_addr, size_t length)
   return e1000_transmit(pkt_addr, length);
 }
 
+// Get network MAC address
+static void
+sys_net_get_mac(uint8_t* mac_address){
+        user_mem_assert(curenv, mac_address, 6, PTE_U | PTE_W);
+        read_mac_address(mac_address);
+}
+
+static int sys_e1000_recv(uint8_t *data_addr)
+{
+ user_mem_assert(curenv, data_addr, PKT_MAX_SIZE, PTE_U);
+ return e1000_recv(data_addr);
+}
+
 // Dispatches to the correct kernel function, passing the arguments.
 int32_t
 syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, uint32_t a5)
@@ -497,6 +510,13 @@ syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, 
          case SYS_e1000_transmit:
          return (int32_t)sys_e1000_transmit((uint32_t *)a1, (size_t)a2);
  
+         case SYS_e1000_recv:
+         return (int32_t)sys_e1000_recv((uint8_t *)a1);       
+  
+         case SYS_net_get_mac:
+         sys_net_get_mac((uint8_t *)a1);
+         return 0;
+         
          default:
          return -E_INVAL;     
  

@@ -128,3 +128,16 @@ sys_e1000_transmit(void *pkt_addr, size_t length)
 {
       return(int32_t)syscall(SYS_e1000_transmit,0, (uint32_t)pkt_addr, (uint32_t)length, 0, 0, 0);
 }
+
+int sys_e1000_recv(void *data_addr)
+{
+     return (int) syscall(SYS_e1000_recv, 0, (uint32_t)data_addr, 0, 0, 0, 0); 
+}
+
+void
+sys_net_get_mac(uint8_t * mac_address)
+{
+        syscall(SYS_net_get_mac, 0, (uint32_t)mac_address, 0, 0, 0, 0);
+        return;
+}
+        
